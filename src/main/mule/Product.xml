@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="Get_Product_Flow" doc:id="fd4b1290-b487-49a9-b6d4-ba25d4fbb22f" >
+		<db:select doc:name="Select" doc:id="d325990e-2b15-4526-8ae4-37948a2a3504" config-ref="Database_Config">
+			<db:sql >select * from Product</db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="6ae36f2e-ab34-44d5-ab8e-d91ca354027c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="delete_Product_Flow" doc:id="270b6c59-6e00-4c2a-8e31-03a270d03655" >
+		<db:delete doc:name="Delete" doc:id="286659a8-f36a-4f74-8e3a-094132c5aa2a" config-ref="Database_Config">
+			<db:sql >delete  from Product where ProductID = :ProductID</db:sql>
+			<db:input-parameters ><![CDATA[#[{ProductID:vars.deleteProductID}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="a87cf075-0257-4eb4-b71c-d1137ce36a5b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="get_Product_BY_ID_Flow" doc:id="591ec3af-a0ab-4f6d-b505-ce103bea611e" >
+		<db:select doc:name="Select" doc:id="109bf4ae-947f-4713-9f27-284c1a2e8edb" config-ref="Database_Config">
+			<db:sql >select * from Product where ProductID = :ProductID</db:sql>
+			<db:input-parameters ><![CDATA[#[{ProductID:vars.ProductID}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="ede45c9e-7eed-40f3-a341-7e2bb2a2bac9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="Post_Product_Flow" doc:id="056f7d19-1289-4d9e-8364-ae874aebfe64" >
+		<db:insert doc:name="Insert" doc:id="2dca01ea-fa4a-44d4-bae0-ff74170c0afb" config-ref="Database_Config" >
+			<db:sql >INSERT INTO Product (ProductID,Category, Title, Price, Quantity, Size, Color) VALUES (:ProductID,:Category,:Title,:Price,:Quantity,:Size,:Color);</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	'ProductID': payload.ProductID,
+	'Category': payload.Category,
+	'Title': payload.Title,
+	'Price': payload.Price,
+	'Quantity': payload.Quantity,
+	'Size': payload.Size,
+	'Color': payload.Color
+
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="cbd4c1f0-5698-4e39-9ee9-b3b5e385a7ba" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="Update_Product_By_id_Flow" doc:id="03b200d9-85b5-42f4-8bb1-9f3cb24ca556" >
+		<db:select doc:name="Select" doc:id="c431317b-0c29-49de-aab8-0d149e27c882" config-ref="Database_Config" target="SelectProduct">
+			<db:sql >select  ProductID,Category,Size,Price,Quantity,Title,Color from Product Where ProductID= :ProductID</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	ProductID: vars.PatchProduct.ProductID
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="17cf88ea-eb17-4a0c-9eb2-0dc5065d17c3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Size": if(vars.PatchProduct.Size != ' ') vars.PatchProduct.Size else vars.SelectProduct.Size[0],
+	"Price": if(vars.PatchProduct.Price != ' ') vars.PatchProduct.Price else vars.SelectProduct.Price[0],
+	"Quantity": if(vars.PatchProduct.Quantity != '') vars.PatchProduct.Quantity else vars.SelectProduct.Quantity[0],
+	"Color": if(vars.PatchProduct.Color != ' ') vars.PatchProduct.Color else vars.SelectProduct.Color[0]
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:update doc:name="Update" doc:id="508c8dee-c926-4f9b-91c3-0257281d1122" config-ref="Database_Config">
+			<db:sql >UPDATE Product  SET  Price = :Price, Quantity = :Quantity, Size = :Size, Color=:Color  WHERE Product.ProductID = :ProductID</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+ProductID: vars.PatchProduct.ProductID,
+Price: payload.Price,
+Quantity: payload.Quantity,
+Size: payload.Size,
+Color: payload.Color
+
+
+}]]]></db:input-parameters>
+		</db:update>
+		<set-payload value="Product Updated" doc:name="Set Payload" doc:id="1826ab8c-658f-416e-ba73-d0aca8ddcd44" />
+	</sub-flow>
+</mule>

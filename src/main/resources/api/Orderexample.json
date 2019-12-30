@@ -1,0 +1,14 @@
+{
+
+"OrderID": 1,
+"UserID" : 1,
+"Firstname": "Jagruti",
+"Lastname": "Patil",
+"Country": "India",
+"State": "MH",
+"city": "Pune",
+"PhoneNo": "7451874591",
+"qty": 2,
+"TotalPrice": "50000"
+
+}

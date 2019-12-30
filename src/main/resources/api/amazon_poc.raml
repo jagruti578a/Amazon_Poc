@@ -1,0 +1,296 @@
+#%RAML 1.0
+title: Amazon_POC
+types:
+  vendorType: !include vendorExample/VendordataType.raml
+  LoginType: !include LoginExamples/LogindataType.raml
+  productType: !include ProductExample/ProductdataType.raml
+  CustomerType: !include CustomerExample/CustomerdataType.raml
+  OrderType: !include  OrderdataType.raml
+  paymentType: !include paymentExample/PaymentdataType.raml
+  CartType: !include CartExample/CartdataType.raml
+  Customertype: !include CustomerExample/CustomerdataType.raml
+/Login:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: LoginType
+            example: !include LoginExamples/Loginexample.json
+  post:
+    body:
+      application/json:
+        type: LoginType
+          
+        example: !include LoginExamples/Loginexample.json
+          
+    responses:
+      201:
+        body:
+          application/json:
+           
+            example: "Customer Created"
+              
+/vendor:
+  /{ProductID}:
+  
+            
+    delete:
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: vendor deleted but not really
+   
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              type: vendorType
+              example: !include vendorExample/Vendorexample.json
+                  
+      
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: vendorType
+            example: !include vendorExample/Vendorexample.json 
+  post:
+    body:
+      application/json:
+        type: vendorType
+          
+        example: !include vendorExample/Vendorexample.json
+          
+    responses:
+      201:
+        body:
+          application/json:
+           
+            example: "vendor created"
+    
+    
+                                  
+/customer: 
+  /{UserID}:
+    patch:
+       
+      body:
+        application/json:
+          type: Customertype
+          example: !include CustomerExample/CustPostexample.json
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: customer updated partially
+
+                      
+                            
+    delete:
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: customer deleted but not really 
+    get:
+        
+        responses:
+          200:
+            body:
+              application/json:
+                type: CustomerType
+                  
+                example: !include CustomerExample/CustPostexample.json
+      
+                  
+                
+  get:
+    
+    responses:
+      200:
+        body:
+          application/json:
+            type: CustomerType
+              
+            example: !include CustomerExample/CustPostexample.json
+                
+  
+
+
+  post:
+    body:
+      application/json:
+        type: CustomerType
+          
+        example: !include CustomerExample/CustPostexample.json
+          
+    responses:
+      201:
+        body:
+          application/json:
+           
+            example: "Customer Created"
+    
+    
+ 
+/Product:
+  /{ProductID}:
+    
+    patch:
+      
+      body:
+        application/json:
+          type: productType
+          example: !include ProductExample/ProductPostExample.json
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: product updated partially      
+            
+  
+    delete:
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: Product deleted but not really
+    get:
+        responses:
+          200:
+            body:
+              application/json:
+                type: productType 
+                  
+                example: !include ProductExample/ProductPostExample.json
+                
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: productType
+            example: !include ProductExample/ProductPostExample.json
+  post:
+    body:
+      application/json:
+        type: productType
+          
+        example: !include ProductExample/ProductPostExample.json
+          
+    responses:
+      201:
+        body:
+          application/json:
+            example: "product created"
+/Order:
+  /{OrderID}:
+       
+    
+            
+    delete:
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: order deleted but not really
+    get:
+        responses:
+          200:
+            body:
+              application/json:
+                type: OrderType
+                  
+                example: !include Orderexample.json
+                
+  get:
+   
+    responses:
+      200:
+        body:
+          application/json:
+            type: OrderType
+              
+            example: !include Orderexample.json
+                
+  
+
+
+  post:
+    body:
+      application/json:
+        type: OrderType
+          
+        example: !include Orderexample.json
+          
+    responses:
+      201:
+        body:
+          application/json:
+            type:
+            example: "Order created"
+  
+/Payment:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: paymentType
+            example: !include paymentExample/paymentexample.json
+
+  
+/Cart:
+
+  /{id}:       
+    delete:
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: Cart deleted but not really
+    get:
+        responses:
+          200:
+            body:
+              application/json:
+                type: CartType
+                  
+                example: !include CartExample/Cartexample.json
+                
+
+  get:
+    
+      
+    responses:
+      200:
+        body:
+          application/json:
+            type: CartType
+              
+            example: !include CartExample/Cartexample.json
+  post:
+    body:
+      application/json:
+        type: CartType
+          
+        example: !include CartExample/Cartexample.json
+          
+    responses:
+      201:
+        body:
+          application/json:
+            type:
+            example: "Cart created"
+       

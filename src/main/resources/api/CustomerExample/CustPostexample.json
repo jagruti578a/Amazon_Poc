@@ -1,0 +1,17 @@
+        {
+
+	      "UserID": 1,
+	      "Firstname": "Dipali",
+	      "LastName": "Patil",
+	      "PhoneNo": "7548125478",
+	      "EmailID": "Dipali@gmail.com",
+	      "Country": "India",
+	      "State": "MH",
+      	"City": "Mumbai",
+	      "Address": "Andheri",
+      	"Pincode": "451278",
+	      "Gender": "F",
+	      "Password": "Dipali"
+
+
+}

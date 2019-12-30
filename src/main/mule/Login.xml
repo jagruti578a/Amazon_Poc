@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="c9e98bb0-dd4b-4364-8ef2-389acc89b620" >
+		<db:my-sql-connection host="db4free.net" port="3306" user="muleassignment" password="Kailasha@123" database="employee112" />
+	</db:config>
+	<flow name="Login" doc:id="584c88a3-9faa-42d5-a71e-74f440dc1216" >
+		<db:select doc:name="Select" doc:id="d3048888-1f96-423b-a76b-282ba510c868" config-ref="Database_Config">
+			<db:sql >select UserID,Password from Login where  UserID=:UserID AND 
+ Password=:Password</db:sql>
+			<db:input-parameters ><![CDATA[#[{
+'UserID': payload.UserID,
+'Password': payload.Password
+	
+	}]]]></db:input-parameters>
+		</db:select>
+		<set-variable value="#[payload[0].UserID]" doc:name="Set Variable" doc:id="fe8f10a0-2ea7-4de7-b217-9b7bc5f128ef" variableName="userid"/>
+		<choice doc:name="If new User" doc:id="af9a5944-5c90-493a-8791-bf6b0cbd34de" >
+			<when expression="#[sizeOf(payload)&gt;0]">
+				<flow-ref doc:name="order" doc:id="4d85aff6-a396-483b-9043-a4a8be4effd2" name="get:\Order:amazon_poc-config"/>
+			</when>
+			<otherwise >
+				<flow-ref doc:name="Insert customer detail" doc:id="b65916a0-4ada-4645-86b5-7380090acbf3" name="post:\customer:application\json:amazon_poc-config"/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="c8ea82b7-793e-4dc9-b2f4-85b36dacbba0" message="done"/>
+	</flow>
+	<sub-flow name="get_Login_Flow" doc:id="42f8b9cf-d7b3-4461-8cc0-286a062241c9" >
+		<db:select doc:name="Select" doc:id="8522d661-3f59-402a-8617-d5f9bf4a876f" config-ref="Database_Config">
+			<db:sql >select * from Login</db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="11290e47-1596-4f38-88b5-438b487e6468" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="vendorSub_Flow" doc:id="5d13c1f8-3a15-4e56-9edf-ee33bcd5312b" >
+		<db:select doc:name="vendor" doc:id="58907afe-36e3-4743-8573-765e7e449ce6" config-ref="Database_Config" >
+			<db:sql >select * from Vendor</db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="c7237dc8-f71f-4f1e-920c-3a4c2573ac24" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="get_vendor_By_id_Flow1" doc:id="e08357a3-7b06-42a2-8915-19d512e32ad3" >
+		<db:select doc:name="vendor" doc:id="30d30632-0966-4857-80f3-3c7a96e93e63" config-ref="Database_Config" >
+			<db:sql >select  * from Vendor where ProductID= :VendorProductID</db:sql>
+			<db:input-parameters ><![CDATA[#[{VendorProductID:vars.VendorProductID}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="38c3e664-46d7-4a95-a8a1-844306ffb813" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="delete_vendor_by_id_Flow1" doc:id="106441e1-87ec-4de8-89f9-37e8efd22eaf" >
+		<db:delete doc:name="Delete" doc:id="ba3be26c-2649-41c1-bf19-7543b444bd49" config-ref="Database_Config">
+			<db:sql >delete from Vendor where ProductID= :VendorProductID</db:sql>
+			<db:input-parameters ><![CDATA[#[{VendorProductID:vars.deleteVendorProductID}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="ad3ded65-fb89-4d6e-9942-46988fdd2f62" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="Post_vendorFlow" doc:id="a5a85703-44e1-472c-b445-a12dfba83835" >
+		<db:insert doc:name="Vendor" doc:id="04d2d42c-131e-4ac0-a7d3-0e19ac14209b" config-ref="Database_Config" >
+			<db:sql >INSERT INTO Vendor (Name, Password, City, Gender, State, Country, ProductID) VALUES (:Name,:Password,:City,:Gender,:State,:Country,:ProductID);</db:sql>
+			<db:input-parameters ><![CDATA[#[{	 
+	'Name': payload.name,
+	'Password': payload.Password,
+	'Country': payload.Country,
+	'State': payload.State,
+	'City': payload.City,
+	'Gender': payload.Gender,
+	'ProductID': payload.ProductID
+	
+	}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="3f72f958-6d91-4e06-9e38-75e2946cc6b2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="get_Cart_Flow" doc:id="be9074b4-c309-4bec-b7ef-9a3a0059d5c3" >
+		<db:select doc:name="cart" doc:id="e47e1873-9202-445c-8efd-7f7a34e90c87" config-ref="Database_Config" >
+			<db:sql >select * from UserCart</db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="8b25cfb2-e2b0-49e1-8eba-fb103858e9c6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="deleteCart_By_id_Flow" doc:id="33d92527-272b-44eb-aad9-3c18a93dd9e5" >
+		<db:delete doc:name="Delete" doc:id="70c6edaf-92c7-4822-a540-76563e41e714" config-ref="Database_Config">
+			<db:sql >delete from UserCart where id = :id</db:sql>
+			<db:input-parameters ><![CDATA[#[{id:vars.deleteCart}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="38dc082e-a256-4aec-bfe0-be9811527c66" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="Post_CartSub_Flow" doc:id="8c48d1a9-5432-42d7-a58c-62d373ed15aa" >
+		<db:insert doc:name="Copy_of_Insert" doc:id="6175db08-ecd8-4368-affa-6d51200877a2" config-ref="Database_Config">
+			<db:sql>INSERT INTO UserCart( ProductID, Amount, Quantity) 
+VALUES (:ProductID,:Amount,:Quantity);</db:sql>
+			<db:input-parameters><![CDATA[#[{
+
+	'ProductID': payload.ProductID,
+	'Amount': payload.Amount,
+	'Quantity': payload.Quantity
+	
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Copy_of_Transform Message" doc:id="d556489e-e358-4b91-a19d-d80d3a80c302">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="get_Cart_By_id_Flow" doc:id="11489d2f-dafc-42d7-912d-583a9374b29c" >
+		<db:select doc:name="Select" doc:id="9dc4294f-0625-47c7-94dc-5b280d8e8589" config-ref="Database_Config">
+			<db:sql >select * from UserCart where id = :id</db:sql>
+			<db:input-parameters ><![CDATA[#[{id:vars.Cart}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="57728934-e460-494e-850e-ccf2f8baa63b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

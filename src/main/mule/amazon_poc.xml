@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+    <http:listener-config name="amazon_poc-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="amazon_poc-config" api="amazon_poc.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="2439d3ac-7032-4dc9-82e2-147e1057e500">
+        <email:smtp-connection host="smtp.gmail.com" port="587" user="jagruti.patil@apisero.com" password="Kailasha@25">
+            <email:properties>
+                <email:property key="mail.smtp.starttls.enable" value="true" />
+            </email:properties>
+        </email:smtp-connection>
+    </email:smtp-config>
+    <flow name="amazon_poc-main" initialState="started">
+        <http:listener config-ref="amazon_poc-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="amazon_poc-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="amazon_poc-console">
+        <http:listener config-ref="amazon_poc-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="amazon_poc-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\Cart:amazon_poc-config">
+        <flow-ref doc:name="Flow Reference" doc:id="92d6475c-0619-45bb-98fa-14cdf427cdb9" name="get_Cart_Flow" />
+    </flow>
+    <flow name="get:\Login:amazon_poc-config" initialState="started">
+        <flow-ref doc:name="Flow Reference" doc:id="ad1c8db2-a028-4cf5-b68c-b6bbe5d8b295" name="get_Login_Flow" />
+    </flow>
+    <flow name="get:\Order:amazon_poc-config">
+        <flow-ref doc:name="Flow Reference" doc:id="3e49f8a3-3191-45e3-b6f4-fca25e0efca4" name="get_Order_Flow" />
+    </flow>
+    <flow name="get:\Payment:amazon_poc-config">
+        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="1c91785c-380d-4127-bb9f-1742057f3647">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  user_ID: 1,
+  Card_type: "VISA",
+  Card_No: "36004578525",
+  city: "pune",
+  postal_code: "450124",
+  country: "India",
+  totalprice: "4000",
+  Email_Id: "jagruti578a@gmail.com"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\Product:amazon_poc-config">
+        <db:select doc:name="Select" doc:id="28c3f19c-583b-4888-a913-ce81cdf2486d" config-ref="Database_Config">
+            <db:sql>select * from Product</db:sql>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="88f1a0ec-e467-45f4-955e-3227c8aa9aeb">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\customer:amazon_poc-config">
+        <flow-ref doc:name="Flow Reference" doc:id="223feb0e-53ca-40d9-af42-d5b71e704386" name="get_CustomerFlow" />
+    </flow>
+    <flow name="post:\Cart:application\json:amazon_poc-config">
+        <flow-ref doc:name="Flow Reference" doc:id="9474fb1c-f0b3-4137-a1c3-5c2286f2d845" name="Post_CartSub_Flow" />
+    </flow>
+    <flow name="post:\Product:application\json:amazon_poc-config">
+        <flow-ref doc:name="Flow Reference" doc:id="3ce88539-c43f-4ac5-a739-9ecc6308306f" name="Post_Product_Flow" />
+    </flow>
+    <flow name="post:\customer:application\json:amazon_poc-config">
+        <flow-ref doc:name="Flow Reference" doc:id="33a970a2-051a-4e4c-8aae-e02d8e873037" name="Post_Customer_Flow" />
+    </flow>
+    <flow name="post:\Login:application\json:amazon_poc-config">
+        <flow-ref doc:name="Flow Reference" doc:id="cca3530a-889a-4468-857a-9219e3ae67cb" name="Login" />
+    </flow>
+    <flow name="post:\Order:application\json:amazon_poc-config">
+        <flow-ref doc:name="Flow Reference" doc:id="44b7a44b-217f-483c-9b55-8af8e1caed5d" name="Post_Order_Flow" />
+    </flow>
+    <flow name="get:\vendor:amazon_poc-config">
+        <db:select doc:name="Select" doc:id="312822aa-e02c-4a79-8f40-7d1953a89a97" config-ref="Database_Config">
+            <db:sql>select * from Vendor</db:sql>
+        </db:select>
+        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="30273113-79c3-487f-b67f-6fecb28950d2">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\vendor:application\json:amazon_poc-config">
+        <flow-ref doc:name="Flow Reference" doc:id="9c95b255-d291-4d69-94ce-2c09694d0054" name="Post_vendorFlow" />
+    </flow>
+    <flow name="get:\Product\(ProductID):amazon_poc-config">
+        <set-variable value="#[attributes.uriParams.ProductID]" doc:name="Set Variable" doc:id="ddca7bb9-491d-4353-a24e-74f99c8dbc5a" variableName="ProductID" />
+        <flow-ref doc:name="Flow Reference" doc:id="74a2b554-0e1c-4e13-8f0b-ebef427ee472" name="get_Product_BY_ID_Flow" />
+    </flow>
+    <flow name="get:\customer\(UserID):amazon_poc-config">
+        <set-variable value="#[attributes.uriParams.UserID]" doc:name="Set Variable" doc:id="899df482-96d0-44db-9d8b-32e9c700cb14" variableName="UserID" />
+        <flow-ref doc:name="Flow Reference" doc:id="a3a4da52-e902-4051-ae89-dd6cfc3ad4a1" name="get_Customer_ByID" />
+    </flow>
+    <flow name="get:\vendor\(ProductID):amazon_poc-config">
+        <set-variable value="#[attributes.uriParams.ProductID]" doc:name="Set Variable" doc:id="c55ef259-b1f1-43ae-8c2a-1e6501631664" variableName="VendorProductID" />
+        <flow-ref doc:name="Flow Reference" doc:id="766cec12-0432-43f1-94bb-d85dcf909e51" name="get_vendor_By_id_Flow1" />
+    </flow>
+    <flow name="get:\Order\(OrderID):amazon_poc-config">
+        <set-variable value="#[attributes.uriParams.OrderID]" doc:name="Set Variable" doc:id="53252515-ee97-485c-9db2-a46e11d3593a" variableName="OrderID" />
+        <flow-ref doc:name="Flow Reference" doc:id="6860407c-168b-4fc8-b4db-ae2a0c34f6e6" name="get_Order_By_Id_Flow" />
+    </flow>
+    <flow name="get:\Cart\(id):amazon_poc-config">
+        <set-variable value="#[attributes.uriParams.id]" doc:name="Set Variable" doc:id="c77638c8-716f-4365-94b9-f7c2e4dc7f10" variableName="Cart" />
+        <flow-ref doc:name="Flow Reference" doc:id="c8526c18-6890-4860-bd85-8a088c1a214c" name="get_Cart_By_id_Flow" />
+    </flow>
+    <flow name="delete:\Order\(OrderID):amazon_poc-config">
+        <set-variable value="#[attributes.uriParams.OrderID]" doc:name="Set Variable" doc:id="3de646bf-91fc-4ef1-8675-83cc484f7cfa" variableName="deleteOrderID" />
+        <flow-ref doc:name="Flow Reference" doc:id="197234fc-0e46-4fa4-8356-1647245678e1" name="delete_Order_by_id_Flow" />
+    </flow>
+    <flow name="delete:\vendor\(ProductID):amazon_poc-config">
+        <set-variable value="#[attributes.uriParams.ProductID]" doc:name="Set Variable" doc:id="b09848e1-005e-4f05-972c-8074c54db069" variableName="deleteVendorProductID" />
+        <flow-ref doc:name="Flow Reference" doc:id="accce6ba-e141-480c-b702-9adf4042a853" name="delete_vendor_by_id_Flow1" />
+    </flow>
+    <flow name="delete:\Product\(ProductID):amazon_poc-config">
+        <set-variable value="#[attributes.uriParams.ProductID]" doc:name="Set Variable" doc:id="8e9c635a-bb7e-487f-880e-e198c4963233" variableName="deleteProductID" />
+        <flow-ref doc:name="Flow Reference" doc:id="73dddbef-8eeb-462b-855c-8b87b0f7ce19" name="delete_Product_Flow" />
+    </flow>
+    <flow name="delete:\customer\(UserID):amazon_poc-config">
+        <set-variable value="#[attributes.uriParams.UserID]" doc:name="Set Variable" doc:id="4a8242ce-328a-4ebf-8212-8f7349fd4593" variableName="deleteUserID" />
+        <flow-ref doc:name="Flow Reference" doc:id="e785dec0-d8e6-4820-94e9-0866d81e82e5" name="delete_Customer_By_id_Flow" />
+    </flow>
+    <flow name="delete:\Cart\(id):amazon_poc-config">
+        <set-variable value="#[attributes.uriParams.id]" doc:name="Copy_of_Set Variable" doc:id="edf144d0-a220-4dc5-acc8-05706888dc3b" variableName="deleteCart" />
+        <flow-ref doc:name="Flow Reference" doc:id="969ec807-5899-4d4f-80e7-c86a932ec232" name="get_Cart_By_id_Flow" />
+    </flow>
+    <flow name="patch:\Product\(ProductID):application\json:amazon_poc-config">
+        <set-variable value="#[%dw 2.0 output application/json --- {     ProductID: attributes.uriParams.ProductID,    Price: payload.Price,    Quantity: payload.Quantity,    Size: payload.Size,    Color: payload.Color      }]" doc:name="Set Variable" doc:id="022469ad-16a6-4232-92eb-269c880e322e" variableName="PatchProduct" mimeType="application/json" />
+        <flow-ref doc:name="Flow Reference" doc:id="4cc696d3-c4dc-49bd-b66c-5f7a10f7e906" name="Update_Product_By_id_Flow" />
+    </flow>
+    <flow name="patch:\customer\(UserID):application\json:amazon_poc-config">
+        <set-variable value="#[%dw 2.0 output application/json --- {     UserID: attributes.uriParams.UserID,    PhoneNo: payload.PhoneNo,    State: payload.State,    City: payload.City,    Address: payload.Address,   Pincode: payload.Pincode,  Firstname: payload.Firstname,  LastName: payload.LastName,  EmailID: payload.EmailID, Gender: payload.Gender,  Password: payload.Password,  Gender: payload.Gender,  Country: payload.Country       }]" doc:name="Set Variable" doc:id="02ab0516-1fc1-4a20-9e27-62adb6e507c0" variableName="PatchCustomer" mimeType="application/json" />
+        <flow-ref doc:name="Flow Reference" doc:id="6478ef35-d716-4163-b2d2-d0fb5313230b" name="Update_Customer_by_id_Flow" />
+    </flow>
+</mule>

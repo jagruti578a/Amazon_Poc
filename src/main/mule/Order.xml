@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="get_Order_Flow" doc:id="45d9e805-498b-4902-927c-6392c7a1447d" >
+		<db:select doc:name="Select" doc:id="10397180-c041-43c9-8edb-47d3e4b8a134" config-ref="Database_Config">
+			<db:sql >select * from ProductOrder</db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="a8911f52-e3ea-40fb-b724-93b48ad7ee17" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="get_Order_By_Id_Flow" doc:id="4f4fcde9-7a36-4626-bcf9-b33abb7cf910" >
+		<db:select doc:name="order" doc:id="9b88d820-f0da-4aa0-b6dc-4fc9b4304ed5" config-ref="Database_Config" >
+			<db:sql >select * from ProductOrder where OrderID = :OrderID</db:sql>
+			<db:input-parameters ><![CDATA[#[{OrderID:vars.OrderID}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="9cb2297e-418b-4674-a494-178545482fa8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="delete_Order_by_id_Flow" doc:id="6ae7d36e-83e0-49de-9a98-9e4fee8bf7cf" >
+		<db:delete doc:name="Delete" doc:id="76abca5e-3fe9-4ec5-888a-63c7c75dc519" config-ref="Database_Config">
+			<db:sql >delete from Customer where OrderID = :OrderID</db:sql>
+			<db:input-parameters ><![CDATA[#[{OrderID:vars.deleteOrderID}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="772504bc-0399-4667-943d-e9a201413065" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="Post_Order_Flow" doc:id="16ff49f0-ba62-4f12-97ab-a6dc8a82a537" >
+		<db:insert doc:name="Order" doc:id="0d5c0883-6203-4555-9631-d4002b68d7fc" config-ref="Database_Config" >
+			<db:sql >INSERT INTO ProductOrder ( UserID, Firstname, Lastname, Country, State, city, PhoneNo, qty, TotalPrice) VALUES (:UserID,:Firstname,:Lastname,:Country,:State,:city,:PhoneNo,:qty,:TotalPrice);</db:sql>
+			<db:input-parameters ><![CDATA[#[{	 
+	'UserID':  payload.UserID,
+	'Firstname': payload.Firstname,
+	'Lastname': payload.Lastname,
+	'Country': payload.Country,
+	'State': payload.State,
+	'city': payload.city,
+	'PhoneNo': payload.PhoneNo,
+	'qty': payload.qty,
+	'TotalPrice': payload.TotalPrice
+	
+	}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="368edded-8203-4ad9-b3df-ea95e1762ca4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>
